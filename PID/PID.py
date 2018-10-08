@@ -229,7 +229,5 @@ class PDScene(TargetScene):
         self.a_vec = Arrow(ORIGIN, RIGHT, color=BLACK, preserve_tip_size_when_scaling=True)
         self.a_vec.next_to(self.a_label, UP).shift(RIGHT * self.a_vec.get_width() / 2.0)
 
-        self.a_vec_init = deepcopy(self.a_vec)
-
-        self.play(FadeIn(self.a_vec), FadeIn(self.a_label), FadeIn(self.p_label)) 
+        self.play(FadeIn(self.a_vec), FadeIn(self.a_label), FadeIn(self.p_label))
 
