@@ -130,7 +130,7 @@ class PDController(PIDController):
     CONFIG = {
         "kp": 0.01,
         "ki": 0,
-        "kd": 0.1,
+        "kd": 0.2,
     }
 
 
@@ -214,8 +214,14 @@ class PDScene(TargetScene):
 
         self.scene_setup()
 
-        self.play(PDController(self.system, self.a_label, self.a_vec))
-        self.wait()
+        self.play(PDController(self.system, self.a_label, self.a_vec, run_time=8))
+        self.wait(4)
+
+        system_pos_line = Line(self.system.get_center(), self.system.get_center() + UP * 3, color=GREEN)
+        goal_pos_line = Line(DOWN * 4, UP * 4, color=RED)
+
+        self.play(ShowCreation(system_pos_line), ShowCreation(goal_pos_line))
+        self.wait(3)
   
     def scene_setup(self):
         self.p_label = TextMobject("$PD$")
@@ -228,6 +234,8 @@ class PDScene(TargetScene):
 
         self.a_vec = Arrow(ORIGIN, RIGHT, color=BLACK, preserve_tip_size_when_scaling=True)
         self.a_vec.next_to(self.a_label, UP).shift(RIGHT * self.a_vec.get_width() / 2.0)
+
+        self.a_vec_init = deepcopy(self.a_vec)
 
         self.play(FadeIn(self.a_vec), FadeIn(self.a_label), FadeIn(self.p_label))
 
