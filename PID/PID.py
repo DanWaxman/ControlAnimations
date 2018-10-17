@@ -59,6 +59,7 @@ class PIDController(Animation):
         "kd": 0.1,
         "ki": 0.0001,
         "rate_func": (lambda x: 1),
+        "integral": 0,
     }
 
     def __init__(self, system, a_label, a_vec, **kwargs):
@@ -67,14 +68,14 @@ class PIDController(Animation):
         self.pv = 0
         self.a_vec = a_vec
         self.a_label = a_label
-
         # Have to digest the config outside of the Animation init for acceleration scaling.
         digest_config(self, kwargs)
 
-        self.acceleration = self.kp * (self.setpoint - self.pv)
-        self.a_prev = self.acceleration
         self.e_prev = (self.setpoint - self.pv)
-        self.integral = 0
+        self.acceleration = self.pid_output()
+        if abs(self.acceleration) > self.max_acceleration:
+            self.acceleration = self.max_acceleration * math.copysign(1, self.acceleration)
+        self.a_prev = self.acceleration
 
         Animation.__init__(self, VGroup(system, a_label, a_vec), **kwargs)
 
@@ -238,4 +239,37 @@ class PDScene(TargetScene):
         self.a_vec_init = deepcopy(self.a_vec)
 
         self.play(FadeIn(self.a_vec), FadeIn(self.a_label), FadeIn(self.p_label))
+
+class PIDScene(TargetScene):
+    def construct(self):
+        TargetScene.construct(self)
+
+        self.scene_setup()
+
+        self.play(PIDController(self.system, self.a_label, self.a_vec, run_time=8))
+
+        self.wait(4)
+
+        system_pos_line = Line(self.system.get_center(), self.system.get_center() + UP * 3, color=GREEN)
+        goal_pos_line = Line(DOWN * 4, UP * 4, color=RED)
+
+        self.play(ShowCreation(goal_pos_line), ShowCreation(system_pos_line))
+        self.wait(3)
+
+    def scene_setup(self):
+        self.p_label = TextMobject("$PID$")
+        self.p_label.move_to(self.ball.get_center())
+
+        self.a_label = TextMobject("$a$")
+        self.a_label.next_to(self.ball, UP)
+
+        self.system = VGroup(self.ball, self.p_label)
+
+        self.a_vec = Arrow(ORIGIN, RIGHT, color=BLACK, preserve_tip_size_when_scaling=True)
+        self.a_vec.next_to(self.a_label, UP).shift(RIGHT * self.a_vec.get_width() / 2.0)
+
+        self.a_vec_init = deepcopy(self.a_vec)
+
+        self.play(FadeIn(self.a_vec), FadeIn(self.a_label), FadeIn(self.p_label))
+
 
